@@ -397,7 +397,7 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
             <button class="btn btn-br" onclick="window.print()">🖨 Print</button>
           </div>
         </div>
-        <div class="card"><div class="tw"><table><thead><tr><th>#</th><th>Nama Lengkap</th><th>Tgl Lahir</th><th>L/P</th><th>No. HP</th><th>Wilayah</th><th>Baptis</th><th>Status</th><th class="no-print">Aksi</th></tr></thead><tbody id="tb-jemaat"></tbody></table></div><div style="padding:11px 16px"><div class="pgn" id="pg-jemaat"></div></div></div>
+        <div class="card"><div class="tw"><table><thead><tr><th>#</th><th>Nama Lengkap</th><th>Tgl Lahir</th><th>L/P</th><th>Status Nikah</th><th>Pekerjaan</th><th>No. HP</th><th>Cell</th><th>Wilayah</th><th>Baptis</th><th>Status</th><th class="no-print">Aksi</th></tr></thead><tbody id="tb-jemaat"></tbody></table></div><div style="padding:11px 16px"><div class="pgn" id="pg-jemaat"></div></div></div>
       </div>
 
       <!-- KEUANGAN -->
@@ -487,8 +487,16 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
 
 <!-- MODAL: JEMAAT -->
 <div class="ov" id="ov-jemaat"><div class="modal">
-  <h3>✞ Tambah Data Jemaat</h3>
+  <h3>&#10011; Tambah Data Jemaat</h3>
   <div class="fr"><div class="fg2"><label>Nama Depan *</label><input type="text" id="j-nd" placeholder="Nama depan"></div><div class="fg2"><label>Nama Belakang</label><input type="text" id="j-nb" placeholder="Nama belakang"></div></div>
+  <div class="fr"><div class="fg2"><label>Tanggal Lahir</label><input type="date" id="j-tl"></div><div class="fg2"><label>Jenis Kelamin</label><select id="j-jk"><option>Laki-laki</option><option>Perempuan</option></select></div></div>
+  <div class="fr"><div class="fg2"><label>Status Pernikahan</label><select id="j-nikah"><option>Belum Nikah</option><option>Nikah</option><option>Cerai</option><option>Duda/Janda</option></select></div><div class="fg2"><label>Pembaptisan</label><select id="j-bap"><option>Sudah</option><option>Belum</option></select></div></div>
+  <div class="fr"><div class="fg2"><label>No. HP</label><input type="text" id="j-hp" placeholder="08xxxxxxxx"></div><div class="fg2"><label>Pekerjaan</label><input type="text" id="j-kerja" placeholder="cth: Guru, Wiraswasta..."></div></div>
+  <div class="fr"><div class="fg2"><label>Region Cell</label><input type="text" id="j-cell" placeholder="cth: Cell A, Cell Timur..."></div><div class="fg2"><label>Status Jemaat</label><select id="j-st"><option>Aktif</option><option>Tidak Aktif</option><option>Pindah</option></select></div></div>
+  <div class="fr"><div class="fg2"><label>Wilayah</label><select id="j-wil-type"><option>Kota</option><option>Kabupaten</option></select></div><div class="fg2"><label>Nama Kota / Kabupaten</label><input type="text" id="j-wil-nama" placeholder="cth: Probolinggo, Malang..."></div></div>
+  <div class="fg2"><label>Alamat Lengkap</label><textarea id="j-alm" rows="2" placeholder="Alamat lengkap..."></textarea></div>
+  <div class="mf"><button class="btn btn-o" onclick="closeOv('ov-jemaat')">Batal</button><button class="btn btn-g" onclick="tambahJ()">&#128190; Simpan ke Firebase</button></div>
+</div></div>
   <div class="fr"><div class="fg2"><label>Tanggal Lahir</label><input type="date" id="j-tl"></div><div class="fg2"><label>Jenis Kelamin</label><select id="j-jk"><option>Laki-laki</option><option>Perempuan</option></select></div></div>
   <div class="fr"><div class="fg2"><label>No. HP</label><input type="text" id="j-hp" placeholder="08xxxxxxxx"></div><div class="fg2"><label>Wilayah / Rayon</label><input type="text" id="j-wil" placeholder="Rayon / Zona"></div></div>
   <div class="fr"><div class="fg2"><label>Status</label><select id="j-st"><option>Aktif</option><option>Tidak Aktif</option><option>Pindah</option></select></div><div class="fg2"><label>Pembaptisan</label><select id="j-bap"><option>Sudah</option><option>Belum</option></select></div></div>
@@ -769,11 +777,18 @@ async function renderDash() {
 let allJ = [], filtJ = [], pgJ = 1; const PER = 8;
 async function renderJ() { allJ = await FS.all('jemaat', 'ts', 'asc'); filtJ = [...allJ]; pgJ = 1; drawJ(); }
 function filterJ() {
-  const q = gv('q-jemaat').toLowerCase(), st = gv('f-status');
-  filtJ = allJ.filter(j => {
-    const nm = (j.nd + ' ' + j.nb).toLowerCase();
-    return (!q || nm.includes(q) || (j.hp||'').includes(q) || (j.wil||'').toLowerCase().includes(q)) && (!st || j.st === st);
-  }); pgJ = 1; drawJ();
+  var q = gv('q-jemaat').toLowerCase(), st = gv('f-status');
+  filtJ = allJ.filter(function(j) {
+    var nm = ((j.nd||'') + ' ' + (j.nb||'')).toLowerCase();
+    var match = !q || nm.includes(q)
+      || (j.hp||'').includes(q)
+      || (j.cell||'').toLowerCase().includes(q)
+      || (j.wil||'').toLowerCase().includes(q)
+      || (j.kerja||'').toLowerCase().includes(q)
+      || (j.wil||'').toLowerCase().includes(q);
+    return match && (!st || j.st === st);
+  });
+  pgJ = 1; drawJ();
 }
 function drawJ() {
   var stC = { 'Aktif':'sb-ok', 'Tidak Aktif':'sb-no', 'Pindah':'sb-yw' };
@@ -782,18 +797,22 @@ function drawJ() {
     var bapBg  = j.bap==='Sudah' ? '#D1FAE5' : '#FEF3C7';
     var bapCol = j.bap==='Sudah' ? '#065F46' : '#92400E';
     var stCls  = stC[j.st] || 'sb-yw';
+    var lokasi = j.wil || '-';
     return '<tr>'
       + '<td>' + ((pgJ-1)*PER+i+1) + '</td>'
-      + '<td><strong>' + j.nd + ' ' + j.nb + '</strong></td>'
+      + '<td><strong>' + (j.nd||'') + ' ' + (j.nb||'') + '</strong></td>'
       + '<td>' + fTgl(j.tl) + '</td>'
       + '<td>' + (j.jk==='Laki-laki'?'L':'P') + '</td>'
+      + '<td><span class="sb" style="background:#EDE0FF;color:#5B2D8E">' + (j.nikah||'-') + '</span></td>'
+      + '<td>' + (j.kerja||'-') + '</td>'
       + '<td>' + (j.hp||'') + '</td>'
-      + '<td>' + (j.wil||'') + '</td>'
-      + '<td><span class="sb" style="background:' + bapBg + ';color:' + bapCol + '">' + j.bap + '</span></td>'
-      + '<td><span class="sb ' + stCls + '">' + j.st + '</span></td>'
+      + '<td>' + (j.cell||'-') + '</td>'
+      + '<td>' + lokasi + '</td>'
+      + '<td><span class="sb" style="background:' + bapBg + ';color:' + bapCol + '">' + (j.bap||'-') + '</span></td>'
+      + '<td><span class="sb ' + stCls + '">' + (j.st||'-') + '</span></td>'
       + '<td class="no-print"><button class="btn btn-r btn-sm" data-col="jemaat" data-id="' + j._id + '">Hapus</button></td>'
       + '</tr>';
-  }).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Tidak ada data</td></tr>';
+  }).join('') : '<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:20px">Tidak ada data</td></tr>';
   document.getElementById('tb-jemaat').innerHTML = rows;
   var tot = Math.ceil(filtJ.length / PER);
   document.getElementById('pg-jemaat').innerHTML = tot > 1 ? Array.from({length:tot}, function(_,i) {
@@ -801,11 +820,31 @@ function drawJ() {
   }).join('') : '';
 }
 async function tambahJ() {
-  const nd = gv('j-nd').trim(); if (!nd) { alert('Nama depan wajib diisi'); return; }
-  await FS.add('jemaat', { nd, nb:gv('j-nb').trim(), tl:gv('j-tl')||'2000-01-01', jk:gv('j-jk'), hp:gv('j-hp'), wil:gv('j-wil'), st:gv('j-st'), bap:gv('j-bap'), alm:gv('j-alm') });
-  closeOv('ov-jemaat'); clr('j-nd','j-nb','j-tl','j-hp','j-wil','j-alm');
+  var nd = gv('j-nd').trim();
+  if (!nd) { alert('Nama depan wajib diisi'); return; }
+  var wilType = gv('j-wil-type');
+  var wilNama = gv('j-wil-nama').trim();
+  var wilayah = wilType && wilNama ? wilType + ' ' + wilNama : (wilNama || '-');
+  await FS.add('jemaat', {
+    nd: nd,
+    nb: gv('j-nb').trim(),
+    tl: gv('j-tl') || '2000-01-01',
+    jk: gv('j-jk'),
+    nikah: gv('j-nikah'),
+    hp: gv('j-hp'),
+    kerja: gv('j-kerja'),
+    cell: gv('j-cell'),
+    st: gv('j-st'),
+    wil: wilayah,
+    bap: gv('j-bap'),
+    alm: gv('j-alm')
+  });
+  closeOv('ov-jemaat');
+  clr('j-nd','j-nb','j-tl','j-hp','j-kerja','j-cell','j-wil-nama','j-alm');
   addLog('add', '+', 'Jemaat baru ditambahkan', nd, 'add');
-  await renderJ(); await renderDash(); toast('OK Data jemaat disimpan ke Firebase');
+  await renderJ();
+  await renderDash();
+  toast('Data jemaat disimpan ke Firebase');
 }
 
 // ===================================================
@@ -984,7 +1023,7 @@ async function clearLog() { if (!confirm('Hapus semua log dari Firebase?')) retu
 // ===================================================
 async function xExcel(tipe) {
   let rows = [], name = '', file = '';
-  if (tipe === 'jemaat')   { name='Data Jemaat'; file='Jemaat_GBI_Syalom.xlsx'; const d=allJ.length?allJ:await FS.all('jemaat','ts','asc'); rows=[['No','Nama','Tgl Lahir','JK','HP','Wilayah','Baptis','Status','Alamat'],...d.map((j,i)=>[i+1,j.nd+' '+j.nb,j.tl,j.jk,j.hp,j.wil,j.bap,j.st,j.alm])]; }
+  if (tipe === 'jemaat')   { name='Data Jemaat'; file='Jemaat_GBI_Syalom.xlsx'; var dj=allJ.length?allJ:await FS.all('jemaat','ts','asc'); rows=[['No','Nama Lengkap','Tgl Lahir','JK','Status Nikah','Pekerjaan','No. HP','Region Cell','Wilayah','Baptis','Status','Alamat']].concat(dj.map(function(j,i){return [i+1,(j.nd||'')+' '+(j.nb||''),j.tl,j.jk,j.nikah||'',j.kerja||'',j.hp,j.cell||'',j.wil||'',j.bap,j.st,j.alm||''];})); }
   else if (tipe === 'keuangan') { name='Keuangan'; file='Keuangan_GBI_Syalom.xlsx'; const d=allK.length?allK:await FS.all('keuangan','ts','desc'); const inc=d.filter(k=>k.jenis==='Pemasukan').reduce((s,k)=>s+Number(k.jml),0), exp=d.filter(k=>k.jenis==='Pengeluaran').reduce((s,k)=>s+Number(k.jml),0); rows=[['Tanggal','Keterangan','Kategori','Jenis','Jumlah (Rp)'],...d.map(k=>[k.tgl,k.ket,k.kat,k.jenis,Number(k.jml)]),[],[' ',' ',' ','TOTAL PEMASUKAN',inc],[' ',' ',' ','TOTAL PENGELUARAN',exp],[' ',' ',' ','SALDO',inc-exp]]; }
   else if (tipe === 'jadwal')  { name='Jadwal Pelayanan'; file='Jadwal_GBI_Syalom.xlsx'; const d=allJD.length?allJD:await FS.all('jadwal','tgl','asc'); rows=[['Tanggal','Hari','Waktu','Nama','Jenis Ibadah','Pemimpin','WL','Singer','Gitaris','Bassist','Drummer','Keyboard','Tempat'],...d.map(j=>[j.tgl,j.hari,j.wkt,j.nm,j.jenis||'',j.pim||'',j.wl||'',j.sg||'',j.gt||'',j.bs||'',j.dr||'',j.ky||'',j.tmp||''])]; }
   else if (tipe === 'ibadah')  { name='Jadwal Ibadah'; file='Ibadah_GBI_Syalom.xlsx'; const d=allIB.length?allIB:await FS.all('ibadah','tgl','asc'); rows=[['Tanggal','Waktu','Nama','Pengkhotbah','WL','Tema'],...d.map(ib=>[ib.tgl,ib.wkt,ib.nm,ib.kh||'',ib.wl||'',ib.tm||''])]; }
