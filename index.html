@@ -221,9 +221,9 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
 .fchip.on,.fchip:hover{background:var(--gold);color:var(--deep);border-color:var(--gold);}
 
 /* MODAL */
-.ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;overflow:hidden;}
-.ov.open{display:flex;align-items:center;justify-content:center;}
-.modal{background:var(--white);border-radius:13px;padding:22px;width:90%;max-width:640px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);position:relative;z-index:201;}
+.ov{display:none!important;position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;background:rgba(0,0,0,0.55);z-index:9000;align-items:center;justify-content:center;overflow-y:auto;}
+.ov.open{display:flex!important;align-items:center;justify-content:center;}
+.modal{background:var(--white);border-radius:13px;padding:22px;width:90%;max-width:640px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25);position:relative;z-index:9001;}
 .modal.sm{max-width:400px;}
 .modal h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--cream2);}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -486,7 +486,7 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
 </div>
 
 <!-- MODAL: JEMAAT -->
-<div class="ov" id="ov-jemaat"><div class="modal">
+<div class="ov" id="ov-jemaat" style="display:none!important"><div class="modal">
   <h3>&#10011; Tambah Data Jemaat</h3>
   <div class="fr"><div class="fg2"><label>Nama Depan *</label><input type="text" id="j-nd" placeholder="Nama depan"></div><div class="fg2"><label>Nama Belakang</label><input type="text" id="j-nb" placeholder="Nama belakang"></div></div>
   <div class="fr"><div class="fg2"><label>Tanggal Lahir</label><input type="date" id="j-tl"></div><div class="fg2"><label>Jenis Kelamin</label><select id="j-jk"><option>Laki-laki</option><option>Perempuan</option></select></div></div>
@@ -505,7 +505,7 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
 </div></div>
 
 <!-- MODAL: KEUANGAN -->
-<div class="ov" id="ov-keu"><div class="modal">
+<div class="ov" id="ov-keu" style="display:none!important"><div class="modal">
   <h3>💰 Tambah Transaksi</h3>
   <div class="fr"><div class="fg2"><label>Tanggal *</label><input type="date" id="k-tgl"></div><div class="fg2"><label>Jenis *</label><select id="k-jenis"><option>Pemasukan</option><option>Pengeluaran</option></select></div></div>
   <div class="fg2"><label>Keterangan *</label><input type="text" id="k-ket" placeholder="Keterangan transaksi"></div>
@@ -514,7 +514,7 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
 </div></div>
 
 <!-- MODAL: JADWAL PELAYANAN -->
-<div class="ov" id="ov-jadwal"><div class="modal">
+<div class="ov" id="ov-jadwal" style="display:none!important"><div class="modal">
   <h3>📅 Tambah Jadwal Pelayanan</h3>
   <div class="fr"><div class="fg2"><label>Tanggal *</label><input type="date" id="jd-tgl" onchange="setHari()"></div><div class="fg2"><label>Hari (otomatis)</label><input type="text" id="jd-hari" readonly style="background:var(--cream2);color:var(--muted)"></div></div>
   <div class="fr"><div class="fg2"><label>Waktu</label><input type="time" id="jd-wkt"></div><div class="fg2"><label>Tempat</label><input type="text" id="jd-tmp" placeholder="Lokasi kegiatan"></div></div>
@@ -529,7 +529,7 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
 </div></div>
 
 <!-- MODAL: IBADAH -->
-<div class="ov" id="ov-ibadah"><div class="modal">
+<div class="ov" id="ov-ibadah" style="display:none!important"><div class="modal">
   <h3>⛪ Tambah Jadwal Ibadah</h3>
   <div class="fr"><div class="fg2"><label>Tanggal *</label><input type="date" id="ib-tgl"></div><div class="fg2"><label>Waktu</label><input type="time" id="ib-wkt"></div></div>
   <div class="fg2"><label>Nama Ibadah *</label><input type="text" id="ib-nm" placeholder="cth: Ibadah Raya Minggu"></div>
@@ -539,7 +539,7 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
 </div></div>
 
 <!-- MODAL: UBAH PASSWORD -->
-<div class="ov" id="ov-pw"><div class="modal sm">
+<div class="ov" id="ov-pw" style="display:none!important"><div class="modal sm">
   <h3>🔑 Ubah Password</h3>
   <div class="fg2"><label>Password Lama *</label><input type="password" id="pw-old" placeholder="Password saat ini"></div>
   <div class="fg2"><label>Password Baru *</label><input type="password" id="pw-new" placeholder="Min. 6 karakter" oninput="pwStrength()"></div>
@@ -705,8 +705,16 @@ const clr  = (...ids) => ids.forEach(id => { const el = document.getElementById(
 const setHari = () => { const v = gv('jd-tgl'); if (v) document.getElementById('jd-hari').value = DAYS[new Date(v).getDay()]; };
 
 function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2800); }
-function openOv(id)  { document.getElementById(id).classList.add('open'); }
-function closeOv(id) { document.getElementById(id).classList.remove('open'); document.querySelectorAll('.alert').forEach(e => e.classList.remove('show')); }
+function openOv(id) {
+  var el = document.getElementById(id);
+  el.classList.add('open');
+  el.style.display = 'flex';
+}
+function closeOv(id) {
+  var el = document.getElementById(id);
+  if (el) { el.classList.remove('open'); el.style.display = 'none'; }
+  document.querySelectorAll('.alert').forEach(function(e) { e.classList.remove('show'); });
+}
 function showAlert(id, msg) { const e = document.getElementById(id); e.textContent = msg; e.classList.add('show'); }
 function setDB(on) {
   const el = document.getElementById('db-ind');
