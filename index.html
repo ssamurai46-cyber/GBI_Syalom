@@ -488,20 +488,35 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
 <!-- MODAL: JEMAAT -->
 <div class="ov" id="ov-jemaat" style="display:none!important"><div class="modal">
   <h3>&#10011; Tambah Data Jemaat</h3>
-  <div class="fr"><div class="fg2"><label>Nama Depan *</label><input type="text" id="j-nd" placeholder="Nama depan"></div><div class="fg2"><label>Nama Belakang</label><input type="text" id="j-nb" placeholder="Nama belakang"></div></div>
-  <div class="fr"><div class="fg2"><label>Tanggal Lahir</label><input type="date" id="j-tl"></div><div class="fg2"><label>Jenis Kelamin</label><select id="j-jk"><option>Laki-laki</option><option>Perempuan</option></select></div></div>
-  <div class="fr"><div class="fg2"><label>Status Pernikahan</label><select id="j-nikah"><option>Belum Nikah</option><option>Nikah</option><option>Cerai</option><option>Duda/Janda</option></select></div><div class="fg2"><label>Pembaptisan</label><select id="j-bap"><option>Sudah</option><option>Belum</option></select></div></div>
-  <div class="fr"><div class="fg2"><label>No. HP</label><input type="text" id="j-hp" placeholder="08xxxxxxxx"></div><div class="fg2"><label>Pekerjaan</label><input type="text" id="j-kerja" placeholder="cth: Guru, Wiraswasta..."></div></div>
-  <div class="fr"><div class="fg2"><label>Region Cell</label><input type="text" id="j-cell" placeholder="cth: Cell A, Cell Timur..."></div><div class="fg2"><label>Status Jemaat</label><select id="j-st"><option>Aktif</option><option>Tidak Aktif</option><option>Pindah</option></select></div></div>
-  <div class="fr"><div class="fg2"><label>Wilayah</label><select id="j-wil-type"><option>Kota</option><option>Kabupaten</option></select></div><div class="fg2"><label>Nama Kota / Kabupaten</label><input type="text" id="j-wil-nama" placeholder="cth: Probolinggo, Malang..."></div></div>
+  <div class="fr">
+    <div class="fg2"><label>Nama Depan *</label><input type="text" id="j-nd" placeholder="Nama depan"></div>
+    <div class="fg2"><label>Nama Belakang</label><input type="text" id="j-nb" placeholder="Nama belakang"></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>Tanggal Lahir</label><input type="date" id="j-tl"></div>
+    <div class="fg2"><label>Jenis Kelamin</label><select id="j-jk"><option>Laki-laki</option><option>Perempuan</option></select></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>Status Pernikahan</label><select id="j-nikah"><option>Belum Nikah</option><option>Nikah</option><option>Cerai</option><option>Duda/Janda</option></select></div>
+    <div class="fg2"><label>Pembaptisan</label><select id="j-bap"><option>Sudah</option><option>Belum</option></select></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>No. HP</label><input type="text" id="j-hp" placeholder="08xxxxxxxx"></div>
+    <div class="fg2"><label>Pekerjaan</label><input type="text" id="j-kerja" placeholder="cth: Guru, Wiraswasta..."></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>Region Cell</label><input type="text" id="j-cell" placeholder="cth: Cell A, Cell Timur..."></div>
+    <div class="fg2"><label>Status Jemaat</label><select id="j-st"><option>Aktif</option><option>Tidak Aktif</option><option>Pindah</option></select></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>Wilayah</label><select id="j-wil-type"><option>Kota</option><option>Kabupaten</option></select></div>
+    <div class="fg2"><label>Nama Kota / Kabupaten</label><input type="text" id="j-wil-nama" placeholder="cth: Probolinggo, Malang..."></div>
+  </div>
   <div class="fg2"><label>Alamat Lengkap</label><textarea id="j-alm" rows="2" placeholder="Alamat lengkap..."></textarea></div>
-  <div class="mf"><button class="btn btn-o" onclick="closeOv('ov-jemaat')">Batal</button><button class="btn btn-g" onclick="tambahJ()">&#128190; Simpan ke Firebase</button></div>
-</div></div>
-  <div class="fr"><div class="fg2"><label>Tanggal Lahir</label><input type="date" id="j-tl"></div><div class="fg2"><label>Jenis Kelamin</label><select id="j-jk"><option>Laki-laki</option><option>Perempuan</option></select></div></div>
-  <div class="fr"><div class="fg2"><label>No. HP</label><input type="text" id="j-hp" placeholder="08xxxxxxxx"></div><div class="fg2"><label>Wilayah / Rayon</label><input type="text" id="j-wil" placeholder="Rayon / Zona"></div></div>
-  <div class="fr"><div class="fg2"><label>Status</label><select id="j-st"><option>Aktif</option><option>Tidak Aktif</option><option>Pindah</option></select></div><div class="fg2"><label>Pembaptisan</label><select id="j-bap"><option>Sudah</option><option>Belum</option></select></div></div>
-  <div class="fg2"><label>Alamat</label><textarea id="j-alm" rows="2" placeholder="Alamat lengkap..."></textarea></div>
-  <div class="mf"><button class="btn btn-o" onclick="closeOv('ov-jemaat')">Batal</button><button class="btn btn-g" onclick="tambahJ()">💾 Simpan ke Firebase</button></div>
+  <div class="mf">
+    <button class="btn btn-o" onclick="closeOv('ov-jemaat')">Batal</button>
+    <button class="btn btn-g" onclick="tambahJ()">Simpan ke Firebase</button>
+  </div>
 </div></div>
 
 <!-- MODAL: KEUANGAN -->
@@ -832,26 +847,19 @@ async function tambahJ() {
   if (!nd) { alert('Nama depan wajib diisi'); return; }
   var wilType = gv('j-wil-type');
   var wilNama = gv('j-wil-nama').trim();
-  var wilayah = wilType && wilNama ? wilType + ' ' + wilNama : (wilNama || '-');
+  var wilayah = (wilType && wilNama) ? (wilType + ' ' + wilNama) : (wilNama || '-');
   await FS.add('jemaat', {
-    nd: nd,
-    nb: gv('j-nb').trim(),
+    nd: nd, nb: gv('j-nb').trim(),
     tl: gv('j-tl') || '2000-01-01',
-    jk: gv('j-jk'),
-    nikah: gv('j-nikah'),
-    hp: gv('j-hp'),
-    kerja: gv('j-kerja'),
-    cell: gv('j-cell'),
-    st: gv('j-st'),
-    wil: wilayah,
-    bap: gv('j-bap'),
-    alm: gv('j-alm')
+    jk: gv('j-jk'), nikah: gv('j-nikah'),
+    hp: gv('j-hp'), kerja: gv('j-kerja'),
+    cell: gv('j-cell'), st: gv('j-st'),
+    wil: wilayah, bap: gv('j-bap'), alm: gv('j-alm')
   });
   closeOv('ov-jemaat');
   clr('j-nd','j-nb','j-tl','j-hp','j-kerja','j-cell','j-wil-nama','j-alm');
   addLog('add', '+', 'Jemaat baru ditambahkan', nd, 'add');
-  await renderJ();
-  await renderDash();
+  await renderJ(); await renderDash();
   toast('Data jemaat disimpan ke Firebase');
 }
 
