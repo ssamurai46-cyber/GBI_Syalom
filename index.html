@@ -387,6 +387,40 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
         </div>
       </div>
 
+      
+      <!-- BIRTHDAY PAGE -->
+      <div class="page" id="page-bday">
+        <div class="toolbar">
+          <input type="text" class="sbox" placeholder="Cari nama jemaat..." id="q-bday" oninput="filterBday()">
+          <select class="sbox" id="f-bday-bln" onchange="filterBday()" style="flex:0;width:auto">
+            <option value="">Semua Bulan</option>
+            <option value="0">Januari</option><option value="1">Februari</option>
+            <option value="2">Maret</option><option value="3">April</option>
+            <option value="4">Mei</option><option value="5">Juni</option>
+            <option value="6">Juli</option><option value="7">Agustus</option>
+            <option value="8">September</option><option value="9">Oktober</option>
+            <option value="10">November</option><option value="11">Desember</option>
+          </select>
+          <div class="xg">
+            <button class="btn btn-s" onclick="xExcel('bday')">Excel</button>
+            <button class="btn btn-i" onclick="xCSV('bday')">CSV</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">
+            <h4>Daftar Ulang Tahun Jemaat</h4>
+            <span id="bday-count" style="font-size:.8rem;color:var(--muted)"></span>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>#</th><th>Nama Lengkap</th><th>Tgl Lahir</th><th>Usia</th><th>No. HP</th><th>Status Nikah</th><th>Wilayah</th><th>Status</th></tr></thead>
+              <tbody id="tb-bday"></tbody>
+            </table>
+          </div>
+          <div style="padding:11px 16px"><div class="pgn" id="pg-bday"></div></div>
+        </div>
+      </div>
+
       <!-- JEMAAT -->
       <div class="page" id="page-jemaat">
         <div class="toolbar">
@@ -753,9 +787,9 @@ function goto(pg) {
   if (pageEl) pageEl.classList.add('on');
   var navEl = document.querySelector('.nav-item[data-pg="' + pg + '"]');
   if (navEl) navEl.classList.add('on');
-  var titles = { dashboard:'Dashboard', jemaat:'Data Jemaat', keuangan:'Keuangan', jadwal:'Jadwal Pelayanan', ibadah:'Jadwal Ibadah', log:'Log Aktivitas' };
+  var titles = { dashboard:'Dashboard', jemaat:'Data Jemaat', bday:'Ulang Tahun', keuangan:'Keuangan', jadwal:'Jadwal Pelayanan', ibadah:'Jadwal Ibadah', log:'Log Aktivitas' };
   document.getElementById('pg-title').textContent = titles[pg] || pg;
-  var fn = { jemaat: renderJ, keuangan: renderK, jadwal: renderJD, ibadah: renderIB, log: renderLog };
+  var fn = { jemaat: renderJ, keuangan: renderK, jadwal: renderJD, ibadah: renderIB, log: renderLog, bday: renderBday };
   if (fn[pg]) fn[pg]();
 }
 
@@ -769,31 +803,62 @@ async function renderDash() {
     FS.all('jadwal', 'tgl', 'asc'),
     FS.all('ibadah', 'tgl', 'asc')
   ]);
-  const today = new Date(), tm = today.getMonth();
+  // Cache for birthday filter
+  allJ = J;
+
+  const today = new Date(), tm = today.getMonth(), td = today.getDate();
   document.getElementById('s-jemaat').textContent = J.length;
   document.getElementById('s-jadwal').textContent = JD.length;
-  const inc = K.filter(k => k.jenis === 'Pemasukan').reduce((s, k) => s + Number(k.jml), 0);
-  const exp = K.filter(k => k.jenis === 'Pengeluaran').reduce((s, k) => s + Number(k.jml), 0);
+  const inc = K.filter(k => k.jenis === 'Pemasukan').reduce((s,k) => s + Number(k.jml), 0);
+  const exp = K.filter(k => k.jenis === 'Pengeluaran').reduce((s,k) => s + Number(k.jml), 0);
   document.getElementById('s-saldo').textContent = fRp(inc - exp);
-  const bdM = J.filter(j => j.tl && new Date(j.tl).getMonth() === tm);
-  document.getElementById('s-bday').textContent = bdM.length;
   setDB(true);
-  // Birthday list
+
+  // Birthday — match by month of birth (ignore year)
+  const bdM = J.filter(j => {
+    if (!j.tl) return false;
+    const d = new Date(j.tl);
+    return !isNaN(d) && d.getMonth() === tm;
+  });
+  document.getElementById('s-bday').textContent = bdM.length;
+
   const bl = document.getElementById('bd-list');
-  if (!bdM.length) { bl.innerHTML = '<p style="color:var(--muted);font-size:.8rem">Tidak ada ulang tahun bulan ini.</p>'; }
-  else bl.innerHTML = bdM.sort((a,b) => new Date(a.tl).getDate() - new Date(b.tl).getDate()).slice(0,6).map(j => {
-    const d = new Date(j.tl), it = d.getDate() === today.getDate() && d.getMonth() === today.getMonth(), df = d.getDate() - today.getDate();
-    const badge = it ? '<span class="bd-badge bd-today">HUT Hari Ini!</span>' : (df > 0 && df <= 7) ? '<span class="bd-badge bd-soon">Segera</span>' : '';
-    return '<div class="bd-item"><div class="bd-av">' + ini(j.nd,j.nb) + '</div><div><div class="bd-name">' + j.nd + ' ' + j.nb + '</div><div class="bd-date">' + d.toLocaleDateString('id-ID',{day:'numeric',month:'long'}) + '</div></div>' + badge + '</div>';
-  }).join('');
+  if (!bdM.length) {
+    bl.innerHTML = '<p style="color:var(--muted);font-size:.8rem">Tidak ada ulang tahun bulan ini.</p>';
+  } else {
+    const sorted = bdM.slice().sort((a,b) => new Date(a.tl).getDate() - new Date(b.tl).getDate());
+    bl.innerHTML = sorted.map(j => {
+      const d   = new Date(j.tl);
+      const day = d.getDate();
+      const isToday = (day === td);
+      const df      = day - td;
+      const badge   = isToday
+        ? '<span class="bd-badge bd-today">HUT Hari Ini!</span>'
+        : (df > 0 && df <= 7) ? '<span class="bd-badge bd-soon">Segera</span>' : '';
+      const tglStr  = d.toLocaleDateString('id-ID', {day:'numeric', month:'long'});
+      return '<div class="bd-item" style="cursor:pointer" data-bdid="' + j._id + '">'
+        + '<div class="bd-av">' + ini(j.nd, j.nb) + '</div>'
+        + '<div><div class="bd-name">' + (j.nd||'') + ' ' + (j.nb||'') + '</div>'
+        + '<div class="bd-date">' + tglStr + ' &nbsp;|&nbsp; ' + (j.nikah||'-') + ' &nbsp;|&nbsp; ' + (j.hp||'-') + '</div></div>'
+        + badge + '</div>';
+    }).join('');
+  }
+
   // Upcoming ibadah
-  const sl = document.getElementById('sc-list');
+  const sc = document.getElementById('sc-list');
   const up = IB.filter(x => x.tgl && new Date(x.tgl) >= new Date(today.toDateString())).slice(0,5);
-  if (!up.length) { sl.innerHTML = '<p style="color:var(--muted);font-size:.8rem">Belum ada jadwal ibadah.</p>'; return; }
-  sl.innerHTML = up.map(x => {
-    const d = new Date(x.tgl);
-    return '<div class="sc-item"><div class="sc-time"><span class="dy">' + DAYS[d.getDay()].slice(0,3) + '</span>' + x.wkt + '</div><div><div class="sc-name">' + x.nm + '</div><div class="sc-det"> ' + (x.kh||'-') + ' · Vokal ' + (x.wl||'-') + '</div></div><span class="sc-badge b-ib">Ibadah</span></div>';
-  }).join('');
+  if (!up.length) {
+    sc.innerHTML = '<p style="color:var(--muted);font-size:.8rem">Belum ada jadwal ibadah.</p>';
+  } else {
+    sc.innerHTML = up.map(x => {
+      const d = new Date(x.tgl);
+      return '<div class="sc-item">'
+        + '<div class="sc-time"><span class="dy">' + DAYS[d.getDay()].slice(0,3) + '</span>' + (x.wkt||'') + '</div>'
+        + '<div><div class="sc-name">' + (x.nm||'') + '</div>'
+        + '<div class="sc-det">Pengkhotbah: ' + (x.kh||'-') + ' &nbsp;|&nbsp; WL: ' + (x.wl||'-') + '</div></div>'
+        + '<span class="sc-badge b-ib">Ibadah</span></div>';
+    }).join('');
+  }
 }
 
 // ===================================================
@@ -1048,7 +1113,27 @@ async function xExcel(tipe) {
   else if (tipe === 'keuangan') { name='Keuangan'; file='Keuangan_GBI_Syalom.xlsx'; const d=allK.length?allK:await FS.all('keuangan','ts','desc'); const inc=d.filter(k=>k.jenis==='Pemasukan').reduce((s,k)=>s+Number(k.jml),0), exp=d.filter(k=>k.jenis==='Pengeluaran').reduce((s,k)=>s+Number(k.jml),0); rows=[['Tanggal','Keterangan','Kategori','Jenis','Jumlah (Rp)'],...d.map(k=>[k.tgl,k.ket,k.kat,k.jenis,Number(k.jml)]),[],[' ',' ',' ','TOTAL PEMASUKAN',inc],[' ',' ',' ','TOTAL PENGELUARAN',exp],[' ',' ',' ','SALDO',inc-exp]]; }
   else if (tipe === 'jadwal')  { name='Jadwal Pelayanan'; file='Jadwal_GBI_Syalom.xlsx'; const d=allJD.length?allJD:await FS.all('jadwal','tgl','asc'); rows=[['Tanggal','Hari','Waktu','Nama','Jenis Ibadah','Pemimpin','WL','Singer','Gitaris','Bassist','Drummer','Keyboard','Tempat'],...d.map(j=>[j.tgl,j.hari,j.wkt,j.nm,j.jenis||'',j.pim||'',j.wl||'',j.sg||'',j.gt||'',j.bs||'',j.dr||'',j.ky||'',j.tmp||''])]; }
   else if (tipe === 'ibadah')  { name='Jadwal Ibadah'; file='Ibadah_GBI_Syalom.xlsx'; const d=allIB.length?allIB:await FS.all('ibadah','tgl','asc'); rows=[['Tanggal','Waktu','Nama','Pengkhotbah','WL','Tema'],...d.map(ib=>[ib.tgl,ib.wkt,ib.nm,ib.kh||'',ib.wl||'',ib.tm||''])]; }
+  else if (tipe === 'bday') {
+    name='Ulang Tahun'; file='UlangTahun_GBI_Syalom.xlsx';
+    var db2 = filtBday.length ? filtBday : allJ;
+    var today2 = new Date();
+    var BULAN2 = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    rows=[['No','Nama Lengkap','Tgl Lahir','Bulan','Usia','No. HP','Status Nikah','Wilayah','Status Jemaat']].concat(db2.map(function(j,i){
+      var d=new Date(j.tl), age=today2.getFullYear()-d.getFullYear();
+      return [i+1,(j.nd||'')+' '+(j.nb||''),j.tl,BULAN2[d.getMonth()],age,j.hp||'',j.nikah||'',j.wil||'',j.st||''];
+    }));
+  }
   else if (tipe === 'log')     { name='Log'; file='Log_GBI_Syalom.xlsx'; const d=await FS.all('logs','ts','desc'); rows=[['Waktu','Aktivitas','Detail','Kategori'],...d.map(l=>[l.tsStr||'',l.msg,l.sub||'',l.cat||''])]; }
+  if (tipe === 'bday') {
+    file='UlangTahun_GBI_Syalom.csv';
+    var db3 = filtBday.length ? filtBday : allJ;
+    var today3 = new Date();
+    var BLN3 = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    rows=[['No','Nama Lengkap','Tgl Lahir','Bulan','Usia','No. HP','Status Nikah','Wilayah','Status']].concat(db3.map(function(j,i){
+      var d=new Date(j.tl), age=today3.getFullYear()-d.getFullYear();
+      return [i+1,(j.nd||'')+' '+(j.nb||''),j.tl,BLN3[d.getMonth()],age,j.hp||'',j.nikah||'',j.wil||'',j.st||''];
+    }));
+  }
   if (!rows.length) return;
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws['!cols'] = rows[0].map((_,ci) => ({ wch: Math.max(...rows.map(r => String(r[ci]||'').length), 12) }));
@@ -1099,6 +1184,100 @@ document.getElementById('btn-dim').addEventListener('click', () => { document.ge
 window.addEventListener('offline', () => document.getElementById('offline-bar').classList.add('show'));
 window.addEventListener('online',  () => document.getElementById('offline-bar').classList.remove('show'));
 
+
+
+// ─────────────────────────────────────────────
+//  BIRTHDAY PAGE
+// ─────────────────────────────────────────────
+var allBday = [], filtBday = [], pgBday = 1;
+var BDAY_PER = 10;
+
+async function renderBday() {
+  // Use cached allJ or fetch
+  if (!allJ.length) allJ = await FS.all('jemaat', 'ts', 'asc');
+
+  // Default filter: current month
+  var blnEl = document.getElementById('f-bday-bln');
+  var today  = new Date();
+  if (blnEl && blnEl.value === '') {
+    // Set to current month
+    blnEl.value = String(today.getMonth());
+  }
+  filterBday();
+}
+
+function filterBday() {
+  var q   = (document.getElementById('q-bday')?.value || '').toLowerCase();
+  var bln = document.getElementById('f-bday-bln')?.value;
+  var today = new Date();
+
+  allBday = allJ.filter(j => {
+    if (!j.tl) return false;
+    const d = new Date(j.tl);
+    if (isNaN(d)) return false;
+    var monthMatch = (bln === '' || bln === null || bln === undefined)
+      ? true
+      : d.getMonth() === parseInt(bln);
+    var nameMatch  = !q || ((j.nd||'') + ' ' + (j.nb||'')).toLowerCase().includes(q);
+    return monthMatch && nameMatch;
+  }).sort((a,b) => {
+    var da = new Date(a.tl), db2 = new Date(b.tl);
+    if (da.getMonth() !== db2.getMonth()) return da.getMonth() - db2.getMonth();
+    return da.getDate() - db2.getDate();
+  });
+
+  filtBday = allBday;
+  pgBday   = 1;
+  drawBday();
+}
+
+function drawBday() {
+  var today = new Date();
+  var sl    = filtBday.slice((pgBday-1)*BDAY_PER, pgBday*BDAY_PER);
+  document.getElementById('bday-count').textContent = filtBday.length + ' jemaat';
+
+  var BULAN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+
+  document.getElementById('tb-bday').innerHTML = sl.length ? sl.map((j,i) => {
+    var d       = new Date(j.tl);
+    var day     = d.getDate(), mon = d.getMonth();
+    var isToday = (day === today.getDate() && mon === today.getMonth());
+    var df      = day - today.getDate();
+    var isSoon  = (mon === today.getMonth() && df > 0 && df <= 7);
+    var age     = today.getFullYear() - d.getFullYear();
+
+    var rowStyle = isToday ? 'background:#FFF9E6;' : isSoon ? 'background:#F0FFF4;' : '';
+    var badge    = isToday
+      ? '<span class="sb" style="background:#FFF3CD;color:#856404">HUT Hari Ini!</span>'
+      : isSoon
+      ? '<span class="sb" style="background:#D1ECF1;color:#0C5460">Segera</span>'
+      : '';
+
+    var stC = { 'Aktif':'sb-ok', 'Tidak Aktif':'sb-no', 'Pindah':'sb-yw' };
+    return '<tr style="' + rowStyle + '">'
+      + '<td>' + ((pgBday-1)*BDAY_PER+i+1) + '</td>'
+      + '<td><strong>' + (j.nd||'') + ' ' + (j.nb||'') + '</strong> ' + badge + '</td>'
+      + '<td>' + day + ' ' + BULAN[mon] + ' ' + d.getFullYear() + '</td>'
+      + '<td>' + age + ' tahun</td>'
+      + '<td>' + (j.hp||'-') + '</td>'
+      + '<td>' + (j.nikah||'-') + '</td>'
+      + '<td>' + (j.wil||'-') + '</td>'
+      + '<td><span class="sb ' + (stC[j.st]||'sb-yw') + '">' + (j.st||'-') + '</span></td>'
+      + '</tr>';
+  }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Tidak ada data</td></tr>';
+
+  var tot = Math.ceil(filtBday.length / BDAY_PER);
+  document.getElementById('pg-bday').innerHTML = tot > 1 ? Array.from({length:tot}, (_,i) =>
+    '<button class="pb ' + (pgBday===i+1?'on':'') + '" onclick="pgBday=' + (i+1) + ';drawBday()">' + (i+1) + '</button>'
+  ).join('') : '';
+}
+
+// Click birthday item on dashboard -> goto birthday page
+document.addEventListener('click', function(e) {
+  var item = e.target.closest('[data-bdid]');
+  if (!item) return;
+  goto('bday');
+});
 
 // ─────────────────────────────────────────────
 //  EDIT FUNCTIONS
