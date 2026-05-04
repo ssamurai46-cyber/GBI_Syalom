@@ -1257,14 +1257,18 @@ async function simpanEditJD() {
   } catch(e) { toast('Gagal update: ' + e.message); }
 }
 
-// Event delegation for Hapus buttons
+// Event delegation for Edit & Hapus buttons
 document.addEventListener('click', function(e) {
-  var btn = e.target.closest('[data-col][data-id]');
-  if (btn) {
-    var col = btn.getAttribute('data-col');
-    var id  = btn.getAttribute('data-id');
-    if (col && id) del(col, id);
-  }
+  var btn = e.target.closest('[data-id]');
+  if (!btn) return;
+  var id     = btn.getAttribute('data-id');
+  var action = btn.getAttribute('data-action');
+  var col    = btn.getAttribute('data-col');
+  if (!id) return;
+  if (action === 'edit-j')  { openEditJ(id);  return; }
+  if (action === 'edit-k')  { openEditK(id);  return; }
+  if (action === 'edit-jd') { openEditJD(id); return; }
+  if (col) del(col, id);
 });
 </script>
 
