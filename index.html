@@ -124,6 +124,8 @@ select.sbox{flex:0;width:auto;cursor:pointer;}
 .btn-r:hover{background:#a93226;}
 .btn-sm{padding:4px 9px;font-size:0.72rem;}
 .btn-br{background:var(--brown);color:white;}
+.btn-edit{background:#2471A3;color:white;margin-right:4px;}
+.btn-edit:hover{background:#1a5c82;}
 .btn-br:hover{background:var(--deep);}
 .xg{display:flex;gap:5px;align-items:center;margin-left:auto;}
 
@@ -819,8 +821,6 @@ function drawJ() {
   var rows = sl.length ? sl.map(function(j,i) {
     var bapBg  = j.bap==='Sudah' ? '#D1FAE5' : '#FEF3C7';
     var bapCol = j.bap==='Sudah' ? '#065F46' : '#92400E';
-    var stCls  = stC[j.st] || 'sb-yw';
-    var lokasi = j.wil || '-';
     return '<tr>'
       + '<td>' + ((pgJ-1)*PER+i+1) + '</td>'
       + '<td><strong>' + (j.nd||'') + ' ' + (j.nb||'') + '</strong></td>'
@@ -830,11 +830,13 @@ function drawJ() {
       + '<td>' + (j.kerja||'-') + '</td>'
       + '<td>' + (j.hp||'') + '</td>'
       + '<td>' + (j.cell||'-') + '</td>'
-      + '<td>' + lokasi + '</td>'
+      + '<td>' + (j.wil||'-') + '</td>'
       + '<td><span class="sb" style="background:' + bapBg + ';color:' + bapCol + '">' + (j.bap||'-') + '</span></td>'
-      + '<td><span class="sb ' + stCls + '">' + (j.st||'-') + '</span></td>'
-      + '<td class="no-print"><button class="btn btn-r btn-sm" data-col="jemaat" data-id="' + j._id + '">Hapus</button></td>'
-      + '</tr>';
+      + '<td><span class="sb ' + (stC[j.st]||'sb-yw') + '">' + (j.st||'-') + '</span></td>'
+      + '<td class="no-print">'
+      + '<button class="btn btn-edit btn-sm" data-action="edit-j" data-id="' + j._id + '">Edit</button>'
+      + '<button class="btn btn-r btn-sm" data-col="jemaat" data-id="' + j._id + '">Hapus</button>'
+      + '</td></tr>';
   }).join('') : '<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:20px">Tidak ada data</td></tr>';
   document.getElementById('tb-jemaat').innerHTML = rows;
   var tot = Math.ceil(filtJ.length / PER);
@@ -888,8 +890,10 @@ function drawK() {
       + '<td>' + (k.kat||'') + '</td>'
       + '<td><span class="sb ' + jenisCls + '">' + k.jenis + '</span></td>'
       + '<td style="font-weight:600;color:' + color + '">' + sign + fRp(k.jml) + '</td>'
-      + '<td class="no-print"><button class="btn btn-r btn-sm" data-col="keuangan" data-id="' + k._id + '">Hapus</button></td>'
-      + '</tr>';
+      + '<td class="no-print">'
+      + '<button class="btn btn-edit btn-sm" data-action="edit-k" data-id="' + k._id + '">Edit</button>'
+      + '<button class="btn btn-r btn-sm" data-col="keuangan" data-id="' + k._id + '">Hapus</button>'
+      + '</td></tr>';
   }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Belum ada transaksi</td></tr>';
   document.getElementById('tb-keu').innerHTML = rows;
 }
@@ -912,10 +916,11 @@ async function renderJD() {
   var today = DAYS[new Date().getDay()];
   document.getElementById('jg-week').innerHTML = DAYS.map(function(day) {
     var evs = allJD.filter(function(j){return j.hari===day;});
-    var evHtml = evs.map(function(j) {
-      return '<div class="dc-ev" style="border-left:3px solid var(--gold)"><div class="et">' + j.wkt + ' - ' + fTgl(j.tgl) + '</div><div class="en">' + j.nm + '</div></div>';
-    }).join('') || '<div style="padding:6px;font-size:.62rem;color:var(--muted);text-align:center">-</div>';
-    return '<div class="dc"><div class="dc-hd ' + (day===today?'hl':'') + '">' + day + '</div>' + evHtml + '</div>';
+    return '<div class="dc"><div class="dc-hd ' + (day===today?'hl':'') + '">' + day + '</div>'
+      + (evs.map(function(j) {
+          return '<div class="dc-ev" style="border-left:3px solid var(--gold)"><div class="et">' + j.wkt + ' - ' + fTgl(j.tgl) + '</div><div class="en">' + j.nm + '</div></div>';
+        }).join('') || '<div style="padding:6px;font-size:.62rem;color:var(--muted);text-align:center">-</div>')
+      + '</div>';
   }).join('');
   document.getElementById('tb-jadwal').innerHTML = allJD.length ? allJD.map(function(j) {
     var chips = [
@@ -927,16 +932,16 @@ async function renderJD() {
       j.ky ? '<span class="chip"><span class="cr">Keys</span>' + j.ky + '</span>' : ''
     ].filter(Boolean).join('');
     return '<tr>'
-      + '<td>' + fTgl(j.tgl) + '</td>'
-      + '<td>' + (j.hari||'') + '</td>'
-      + '<td>' + (j.wkt||'') + '</td>'
+      + '<td>' + fTgl(j.tgl) + '</td><td>' + (j.hari||'') + '</td><td>' + (j.wkt||'') + '</td>'
       + '<td><strong>' + (j.nm||'') + '</strong></td>'
-      + '<td><span class="sb b-ib" style="white-space:nowrap">' + (j.jenis||'-') + '</span></td>'
+      + '<td><span class="sb b-ib">' + (j.jenis||'-') + '</span></td>'
       + '<td>' + (j.pim||'-') + '</td>'
       + '<td>' + (chips||'-') + '</td>'
       + '<td>' + (j.tmp||'-') + '</td>'
-      + '<td class="no-print"><button class="btn btn-r btn-sm" data-col="jadwal" data-id="' + j._id + '">Hapus</button></td>'
-      + '</tr>';
+      + '<td class="no-print">'
+      + '<button class="btn btn-edit btn-sm" data-action="edit-jd" data-id="' + j._id + '">Edit</button>'
+      + '<button class="btn btn-r btn-sm" data-col="jadwal" data-id="' + j._id + '">Hapus</button>'
+      + '</td></tr>';
   }).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Belum ada jadwal</td></tr>';
 }
 async function tambahJD() {
@@ -1094,6 +1099,164 @@ document.getElementById('btn-dim').addEventListener('click', () => { document.ge
 window.addEventListener('offline', () => document.getElementById('offline-bar').classList.add('show'));
 window.addEventListener('online',  () => document.getElementById('offline-bar').classList.remove('show'));
 
+
+// ─────────────────────────────────────────────
+//  EDIT FUNCTIONS
+// ─────────────────────────────────────────────
+function setSelect(id, val) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  for (var i = 0; i < el.options.length; i++) {
+    if (el.options[i].value === val) { el.selectedIndex = i; break; }
+  }
+}
+
+// EDIT JEMAAT
+function openEditJ(id) {
+  var j = allJ.find(function(x){ return x._id === id; });
+  if (!j) return;
+  document.getElementById('edit-j-id').value    = id;
+  document.getElementById('edit-j-nd').value    = j.nd    || '';
+  document.getElementById('edit-j-nb').value    = j.nb    || '';
+  document.getElementById('edit-j-tl').value    = j.tl    || '';
+  document.getElementById('edit-j-hp').value    = j.hp    || '';
+  document.getElementById('edit-j-kerja').value = j.kerja || '';
+  document.getElementById('edit-j-cell').value  = j.cell  || '';
+  document.getElementById('edit-j-alm').value   = j.alm   || '';
+  setSelect('edit-j-jk',    j.jk    || 'Laki-laki');
+  setSelect('edit-j-nikah', j.nikah || 'Belum Nikah');
+  setSelect('edit-j-bap',   j.bap   || 'Belum');
+  setSelect('edit-j-st',    j.st    || 'Aktif');
+  var wil = j.wil || '', wilType = 'Kota', wilNama = wil;
+  if (wil.toLowerCase().startsWith('kabupaten ')) { wilType='Kabupaten'; wilNama=wil.substring(10).trim(); }
+  else if (wil.toLowerCase().startsWith('kota '))  { wilType='Kota'; wilNama=wil.substring(5).trim(); }
+  setSelect('edit-j-wil-type', wilType);
+  document.getElementById('edit-j-wil-nama').value = wilNama;
+  openOv('ov-edit-jemaat');
+}
+
+async function simpanEditJ() {
+  var id = document.getElementById('edit-j-id').value;
+  var nd = document.getElementById('edit-j-nd').value.trim();
+  if (!nd) { alert('Nama depan wajib diisi'); return; }
+  var wilType = gv('edit-j-wil-type'), wilNama = gv('edit-j-wil-nama').trim();
+  var wilayah = (wilType && wilNama) ? (wilType + ' ' + wilNama) : (wilNama || '-');
+  try {
+    await db.collection('jemaat').doc(id).update({
+      nd: nd, nb: gv('edit-j-nb').trim(), tl: gv('edit-j-tl') || '2000-01-01',
+      jk: gv('edit-j-jk'), nikah: gv('edit-j-nikah'),
+      hp: gv('edit-j-hp'), kerja: gv('edit-j-kerja'),
+      cell: gv('edit-j-cell'), st: gv('edit-j-st'),
+      wil: wilayah, bap: gv('edit-j-bap'), alm: gv('edit-j-alm')
+    });
+    var idx = allJ.findIndex(function(x){ return x._id === id; });
+    if (idx > -1) {
+      allJ[idx] = Object.assign(allJ[idx], {
+        nd: nd, nb: gv('edit-j-nb').trim(), tl: gv('edit-j-tl') || '2000-01-01',
+        jk: gv('edit-j-jk'), nikah: gv('edit-j-nikah'),
+        hp: gv('edit-j-hp'), kerja: gv('edit-j-kerja'),
+        cell: gv('edit-j-cell'), st: gv('edit-j-st'),
+        wil: wilayah, bap: gv('edit-j-bap'), alm: gv('edit-j-alm')
+      });
+    }
+    closeOv('ov-edit-jemaat');
+    filterJ();
+    addLog('edit', '+', 'Data jemaat diupdate', nd, 'add');
+    toast('Data jemaat berhasil diupdate');
+  } catch(e) { toast('Gagal update: ' + e.message); }
+}
+
+// EDIT KEUANGAN
+function openEditK(id) {
+  var k = allK.find(function(x){ return x._id === id; });
+  if (!k) return;
+  document.getElementById('edit-k-id').value  = id;
+  document.getElementById('edit-k-tgl').value = k.tgl || '';
+  document.getElementById('edit-k-ket').value = k.ket || '';
+  document.getElementById('edit-k-jml').value = k.jml || '';
+  setSelect('edit-k-jenis', k.jenis || 'Pemasukan');
+  setSelect('edit-k-kat',   k.kat   || 'Lainnya');
+  openOv('ov-edit-keu');
+}
+
+async function simpanEditK() {
+  var id  = document.getElementById('edit-k-id').value;
+  var ket = gv('edit-k-ket').trim();
+  var jml = parseFloat(gv('edit-k-jml'));
+  if (!ket || !jml) { alert('Keterangan & jumlah wajib diisi'); return; }
+  try {
+    await db.collection('keuangan').doc(id).update({
+      tgl: gv('edit-k-tgl') || new Date().toISOString().slice(0,10),
+      ket: ket, kat: gv('edit-k-kat'),
+      jenis: gv('edit-k-jenis'), jml: jml
+    });
+    var idx = allK.findIndex(function(x){ return x._id === id; });
+    if (idx > -1) {
+      allK[idx] = Object.assign(allK[idx], {
+        tgl: gv('edit-k-tgl'), ket: ket, kat: gv('edit-k-kat'),
+        jenis: gv('edit-k-jenis'), jml: jml
+      });
+    }
+    closeOv('ov-edit-keu');
+    filterK();
+    renderDash();
+    addLog('edit', '+', 'Transaksi diupdate', ket, 'add');
+    toast('Transaksi berhasil diupdate');
+  } catch(e) { toast('Gagal update: ' + e.message); }
+}
+
+// EDIT JADWAL
+function editSetHari() {
+  var v = document.getElementById('edit-jd-tgl').value;
+  if (v) document.getElementById('edit-jd-hari').value = DAYS[new Date(v).getDay()];
+}
+
+function openEditJD(id) {
+  var j = allJD.find(function(x){ return x._id === id; });
+  if (!j) return;
+  document.getElementById('edit-jd-id').value  = id;
+  document.getElementById('edit-jd-tgl').value = j.tgl || '';
+  document.getElementById('edit-jd-hari').value = j.hari || '';
+  document.getElementById('edit-jd-wkt').value = j.wkt || '';
+  document.getElementById('edit-jd-nm').value  = j.nm  || '';
+  document.getElementById('edit-jd-jenis').value = j.jenis || '';
+  document.getElementById('edit-jd-pim').value = j.pim || '';
+  document.getElementById('edit-jd-tmp').value = j.tmp || '';
+  document.getElementById('edit-jd-wl').value  = j.wl  || '';
+  document.getElementById('edit-jd-sg').value  = j.sg  || '';
+  document.getElementById('edit-jd-gt').value  = j.gt  || '';
+  document.getElementById('edit-jd-bs').value  = j.bs  || '';
+  document.getElementById('edit-jd-dr').value  = j.dr  || '';
+  document.getElementById('edit-jd-ky').value  = j.ky  || '';
+  openOv('ov-edit-jadwal');
+}
+
+async function simpanEditJD() {
+  var id = document.getElementById('edit-jd-id').value;
+  var nm = gv('edit-jd-nm').trim();
+  var tgl = gv('edit-jd-tgl');
+  if (!nm)  { alert('Nama kegiatan wajib diisi'); return; }
+  if (!tgl) { alert('Tanggal wajib diisi'); return; }
+  var hari = DAYS[new Date(tgl).getDay()];
+  var data = {
+    tgl: tgl, hari: hari, wkt: gv('edit-jd-wkt') || '07:00',
+    nm: nm, jenis: gv('edit-jd-jenis') || 'Ibadah Umum',
+    pim: gv('edit-jd-pim'), tmp: gv('edit-jd-tmp'),
+    wl: gv('edit-jd-wl'), sg: gv('edit-jd-sg'),
+    gt: gv('edit-jd-gt'), bs: gv('edit-jd-bs'),
+    dr: gv('edit-jd-dr'), ky: gv('edit-jd-ky')
+  };
+  try {
+    await db.collection('jadwal').doc(id).update(data);
+    var idx = allJD.findIndex(function(x){ return x._id === id; });
+    if (idx > -1) allJD[idx] = Object.assign(allJD[idx], data);
+    closeOv('ov-edit-jadwal');
+    await renderJD();
+    addLog('edit', '+', 'Jadwal diupdate', nm, 'add');
+    toast('Jadwal berhasil diupdate');
+  } catch(e) { toast('Gagal update: ' + e.message); }
+}
+
 // Event delegation for Hapus buttons
 document.addEventListener('click', function(e) {
   var btn = e.target.closest('[data-col][data-id]');
@@ -1104,5 +1267,91 @@ document.addEventListener('click', function(e) {
   }
 });
 </script>
+
+<!-- MODAL: EDIT JEMAAT -->
+<div class="ov" id="ov-edit-jemaat" style="display:none!important"><div class="modal">
+  <h3>&#9998; Edit Data Jemaat</h3>
+  <input type="hidden" id="edit-j-id">
+  <div class="fr">
+    <div class="fg2"><label>Nama Depan *</label><input type="text" id="edit-j-nd" placeholder="Nama depan"></div>
+    <div class="fg2"><label>Nama Belakang</label><input type="text" id="edit-j-nb" placeholder="Nama belakang"></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>Tanggal Lahir</label><input type="date" id="edit-j-tl"></div>
+    <div class="fg2"><label>Jenis Kelamin</label><select id="edit-j-jk"><option>Laki-laki</option><option>Perempuan</option></select></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>Status Pernikahan</label><select id="edit-j-nikah"><option>Belum Nikah</option><option>Nikah</option><option>Cerai</option><option>Duda/Janda</option></select></div>
+    <div class="fg2"><label>Pembaptisan</label><select id="edit-j-bap"><option>Sudah</option><option>Belum</option></select></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>No. HP</label><input type="text" id="edit-j-hp" placeholder="08xxxxxxxx"></div>
+    <div class="fg2"><label>Pekerjaan</label><input type="text" id="edit-j-kerja" placeholder="cth: Guru, Wiraswasta..."></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>Region Cell</label><input type="text" id="edit-j-cell" placeholder="cth: Cell A, Cell Timur..."></div>
+    <div class="fg2"><label>Status Jemaat</label><select id="edit-j-st"><option>Aktif</option><option>Tidak Aktif</option><option>Pindah</option></select></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>Wilayah</label><select id="edit-j-wil-type"><option>Kota</option><option>Kabupaten</option></select></div>
+    <div class="fg2"><label>Nama Kota / Kabupaten</label><input type="text" id="edit-j-wil-nama" placeholder="cth: Probolinggo..."></div>
+  </div>
+  <div class="fg2"><label>Alamat Lengkap</label><textarea id="edit-j-alm" rows="2" placeholder="Alamat lengkap..."></textarea></div>
+  <div class="mf">
+    <button class="btn btn-o" onclick="closeOv('ov-edit-jemaat')">Batal</button>
+    <button class="btn btn-g" onclick="simpanEditJ()">Simpan Perubahan</button>
+  </div>
+</div></div>
+
+<!-- MODAL: EDIT KEUANGAN -->
+<div class="ov" id="ov-edit-keu" style="display:none!important"><div class="modal">
+  <h3>&#9998; Edit Transaksi</h3>
+  <input type="hidden" id="edit-k-id">
+  <div class="fr">
+    <div class="fg2"><label>Tanggal *</label><input type="date" id="edit-k-tgl"></div>
+    <div class="fg2"><label>Jenis *</label><select id="edit-k-jenis"><option>Pemasukan</option><option>Pengeluaran</option></select></div>
+  </div>
+  <div class="fg2"><label>Keterangan *</label><input type="text" id="edit-k-ket" placeholder="Keterangan transaksi"></div>
+  <div class="fr">
+    <div class="fg2"><label>Kategori</label><select id="edit-k-kat"><option>Persembahan Mingguan</option><option>Persembahan Khusus</option><option>Perpuluhan</option><option>Operasional</option><option>Diakonia</option><option>Pembangunan</option><option>Lainnya</option></select></div>
+    <div class="fg2"><label>Jumlah (Rp) *</label><input type="number" id="edit-k-jml" placeholder="0" min="0"></div>
+  </div>
+  <div class="mf">
+    <button class="btn btn-o" onclick="closeOv('ov-edit-keu')">Batal</button>
+    <button class="btn btn-g" onclick="simpanEditK()">Simpan Perubahan</button>
+  </div>
+</div></div>
+
+<!-- MODAL: EDIT JADWAL -->
+<div class="ov" id="ov-edit-jadwal" style="display:none!important"><div class="modal">
+  <h3>&#9998; Edit Jadwal Pelayanan</h3>
+  <input type="hidden" id="edit-jd-id">
+  <div class="fr">
+    <div class="fg2"><label>Tanggal *</label><input type="date" id="edit-jd-tgl" onchange="editSetHari()"></div>
+    <div class="fg2"><label>Hari (otomatis)</label><input type="text" id="edit-jd-hari" readonly style="background:var(--cream2);color:var(--muted)"></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>Waktu</label><input type="time" id="edit-jd-wkt"></div>
+    <div class="fg2"><label>Tempat</label><input type="text" id="edit-jd-tmp" placeholder="Lokasi kegiatan"></div>
+  </div>
+  <div class="fg2"><label>Nama Kegiatan *</label><input type="text" id="edit-jd-nm" placeholder="Nama kegiatan"></div>
+  <div class="fg2"><label>Jenis Ibadah</label><input type="text" id="edit-jd-jenis" placeholder="cth: Ibadah Raya, KKR, Ibadah Pemuda..."></div>
+  <div class="fg2"><label>Pemimpin / Pengkhotbah</label><input type="text" id="edit-jd-pim" placeholder="Nama pemimpin"></div>
+  <div class="sdiv">Tim Musik Pelayanan</div>
+  <div class="fr">
+    <div class="fg2"><label>Worship Leader</label><input type="text" id="edit-jd-wl" placeholder="Nama Worship Leader"></div>
+    <div class="fg2"><label>Singer</label><input type="text" id="edit-jd-sg" placeholder="Nama Singer"></div>
+  </div>
+  <div class="fr3">
+    <div class="fg2"><label>Gitaris</label><input type="text" id="edit-jd-gt" placeholder="Gitaris"></div>
+    <div class="fg2"><label>Bassist</label><input type="text" id="edit-jd-bs" placeholder="Bassist"></div>
+    <div class="fg2"><label>Drummer</label><input type="text" id="edit-jd-dr" placeholder="Drummer"></div>
+  </div>
+  <div class="fg2"><label>Keyboard</label><input type="text" id="edit-jd-ky" placeholder="Nama Keyboardist"></div>
+  <div class="mf">
+    <button class="btn btn-o" onclick="closeOv('ov-edit-jadwal')">Batal</button>
+    <button class="btn btn-g" onclick="simpanEditJD()">Simpan Perubahan</button>
+  </div>
+</div></div>
 </body>
 </html>
