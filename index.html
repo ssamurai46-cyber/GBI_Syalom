@@ -619,6 +619,11 @@ const db   = firebase.firestore();
 const auth = firebase.auth();
 let   user = null;
 
+// Login ulang saat browser ditutup (SESSION persistence)
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(e) {
+  console.error('Persistence error:', e);
+});
+
 // ===================================================
 //  SPLASH - selalu hilang dalam 2.5 detik
 // ===================================================
