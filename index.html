@@ -831,10 +831,15 @@ async function renderDash() {
     FS.all('jadwal', 'tgl', 'asc'),
     FS.all('ibadah', 'tgl', 'asc')
   ]);
-  // Cache for birthday filter
   allJ = J;
 
-  const today = new Date(), tm = today.getMonth(), td = today.getDate();
+  const today = new Date();
+  const tm    = today.getMonth();
+  const td    = today.getDate();
+  const todayStr = today.getFullYear() + '-'
+    + String(today.getMonth()+1).padStart(2,'0') + '-'
+    + String(today.getDate()).padStart(2,'0');
+
   document.getElementById('s-jemaat').textContent = J.length;
   document.getElementById('s-jadwal').textContent = JD.length;
   const inc = K.filter(k => k.jenis === 'Pemasukan').reduce((s,k) => s + Number(k.jml), 0);
@@ -842,7 +847,7 @@ async function renderDash() {
   document.getElementById('s-saldo').textContent = fRp(inc - exp);
   setDB(true);
 
-  // Birthday — match by month of birth (ignore year)
+  // Birthday
   const bdM = J.filter(j => {
     if (!j.tl) return false;
     const d = new Date(j.tl);
@@ -858,33 +863,85 @@ async function renderDash() {
     bl.innerHTML = sorted.map(j => {
       const d   = new Date(j.tl);
       const day = d.getDate();
-      const isToday = (day === td);
-      const df      = day - td;
-      const badge   = isToday
+      const isToday = (day === td && d.getMonth() === tm);
+      const df  = day - td;
+      const badge = isToday
         ? '<span class="bd-badge bd-today">HUT Hari Ini!</span>'
         : (df > 0 && df <= 7) ? '<span class="bd-badge bd-soon">Segera</span>' : '';
-      const tglStr  = d.toLocaleDateString('id-ID', {day:'numeric', month:'long'});
       return '<div class="bd-item" style="cursor:pointer" data-bdid="' + j._id + '">'
         + '<div class="bd-av">' + ini(j.nd, j.nb) + '</div>'
         + '<div><div class="bd-name">' + (j.nd||'') + ' ' + (j.nb||'') + '</div>'
-        + '<div class="bd-date">' + tglStr + ' &nbsp;|&nbsp; ' + (j.nikah||'-') + ' &nbsp;|&nbsp; ' + (j.hp||'-') + '</div></div>'
+        + '<div class="bd-date">' + d.toLocaleDateString('id-ID',{day:'numeric',month:'long'})
+        + ' &nbsp;|&nbsp; ' + (j.nikah||'-') + ' &nbsp;|&nbsp; ' + (j.hp||'-') + '</div></div>'
         + badge + '</div>';
     }).join('');
   }
 
-  // Upcoming ibadah
+  // Upcoming — gabungkan Jadwal Pelayanan + Jadwal Ibadah
+  // Handle both old field names (waktu/nama) and new (wkt/nm)
   const sc = document.getElementById('sc-list');
-  const up = IB.filter(x => x.tgl && new Date(x.tgl) >= new Date(today.toDateString())).slice(0,5);
+
+  const jadwalUp = JD
+    .filter(x => x.tgl && x.tgl >= todayStr)
+    .map(x => ({
+      tgl: x.tgl,
+      wkt: x.wkt || x.waktu || '07:00',
+      nm:  x.nm  || x.nama  || '',
+      kh:  x.pim || x.pemimpin || '',
+      wl:  x.wl  || '',
+      tm:  x.tm  || x.tema || '',
+      jenis: x.jenis || 'Pelayanan',
+      src: 'jadwal'
+    }));
+
+  const ibadahUp = IB
+    .filter(x => x.tgl && x.tgl >= todayStr)
+    .map(x => ({
+      tgl: x.tgl,
+      wkt: x.wkt || x.waktu || '07:00',
+      nm:  x.nm  || x.nama  || '',
+      kh:  x.kh  || x.khotbah || '',
+      wl:  x.wl  || '',
+      tm:  x.tm  || x.tema || '',
+      jenis: 'Ibadah',
+      src: 'ibadah'
+    }));
+
+  // Gabung + hapus duplikat berdasarkan tgl+nama
+  var seen = {};
+  var combined = [];
+  jadwalUp.concat(ibadahUp).forEach(function(x) {
+    var key = x.tgl + '|' + (x.nm||'').toLowerCase().trim();
+    if (!seen[key]) { seen[key] = true; combined.push(x); }
+  });
+
+  combined.sort(function(a,b) {
+    var da = a.tgl + ' ' + a.wkt, db2 = b.tgl + ' ' + b.wkt;
+    return da.localeCompare(db2);
+  });
+
+  var up = combined.slice(0, 7);
+
   if (!up.length) {
-    sc.innerHTML = '<p style="color:var(--muted);font-size:.8rem">Belum ada jadwal ibadah.</p>';
+    sc.innerHTML = '<p style="color:var(--muted);font-size:.8rem">Belum ada jadwal kegiatan terdekat.</p>';
   } else {
     sc.innerHTML = up.map(x => {
-      const d = new Date(x.tgl);
+      const d = new Date(x.tgl + 'T00:00:00');
+      const isToday2 = (x.tgl === todayStr);
+      const badgeCls = x.src === 'ibadah' ? 'b-ib' : 'b-gn';
+      const badgeTxt = x.src === 'ibadah' ? 'Ibadah' : 'Pelayanan';
       return '<div class="sc-item">'
-        + '<div class="sc-time"><span class="dy">' + DAYS[d.getDay()].slice(0,3) + '</span>' + (x.wkt||'') + '</div>'
-        + '<div><div class="sc-name">' + (x.nm||'') + '</div>'
-        + '<div class="sc-det">Pengkhotbah: ' + (x.kh||'-') + ' &nbsp;|&nbsp; WL: ' + (x.wl||'-') + '</div></div>'
-        + '<span class="sc-badge b-ib">Ibadah</span></div>';
+        + '<div class="sc-time"><span class="dy">' + DAYS[d.getDay()].slice(0,3) + '</span>' + x.wkt + '</div>'
+        + '<div style="flex:1"><div class="sc-name">' + x.nm
+        + (isToday2 ? ' <span style="font-size:.63rem;background:#FEF3C7;color:#92400E;padding:1px 5px;border-radius:3px">Hari Ini</span>' : '')
+        + '</div>'
+        + '<div class="sc-det">'
+        + (x.kh ? 'Pengkhotbah: ' + x.kh : '')
+        + (x.kh && x.wl ? ' &nbsp;|&nbsp; ' : '')
+        + (x.wl ? 'WL: ' + x.wl : '')
+        + (x.tm ? '<br><em style="font-size:.7rem;color:var(--muted)">' + x.tm + '</em>' : '')
+        + '</div></div>'
+        + '<span class="sc-badge ' + badgeCls + '">' + badgeTxt + '</span></div>';
     }).join('');
   }
 }
@@ -1095,27 +1152,41 @@ async function tambahJD() {
 let allIB = [];
 async function renderIB() {
   allIB = await FS.all('ibadah', 'tgl', 'asc');
-  document.getElementById('tb-ibadah').innerHTML = allIB.length ? allIB.map(function(ib) {
-    var d = new Date(ib.tgl);
+  document.getElementById('tb-ibadah').innerHTML = allIB.length ? allIB.map(ib => {
+    const d   = new Date(ib.tgl);
+    // Handle both old (waktu/nama/khotbah/tema) and new (wkt/nm/kh/tm) field names
+    const wkt  = ib.wkt  || ib.waktu   || '';
+    const nm   = ib.nm   || ib.nama    || '';
+    const kh   = ib.kh   || ib.khotbah || '';
+    const wl   = ib.wl   || '';
+    const tm   = ib.tm   || ib.tema    || '';
     return '<tr>'
       + '<td>' + fTgl(ib.tgl) + '</td>'
       + '<td>' + DAYS[d.getDay()] + '</td>'
-      + '<td>' + (ib.wkt||'') + '</td>'
-      + '<td><strong>' + (ib.nm||'') + '</strong></td>'
-      + '<td>' + (ib.kh||'-') + '</td>'
-      + '<td>' + (ib.wl||'-') + '</td>'
-      + '<td><em style="font-size:.79rem">' + (ib.tm||'-') + '</em></td>'
-      + '<td class="no-print"><button class="btn btn-r btn-sm" data-col="ibadah" data-id="' + ib._id + '">Hapus</button></td>'
-      + '</tr>';
+      + '<td>' + wkt + '</td>'
+      + '<td><strong>' + nm + '</strong></td>'
+      + '<td>' + (kh||'-') + '</td>'
+      + '<td>' + (wl||'-') + '</td>'
+      + '<td><em style="font-size:.79rem">' + (tm||'-') + '</em></td>'
+      + '<td class="no-print">'
+      + '<button class="btn btn-edit btn-sm" data-action="edit-ib" data-id="' + ib._id + '">Edit</button>'
+      + '<button class="btn btn-r btn-sm" data-col="ibadah" data-id="' + ib._id + '">Hapus</button>'
+      + '</td></tr>';
   }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Belum ada jadwal ibadah</td></tr>';
 }
 async function tambahIB() {
-  const nm = gv('ib-nm').trim(); if (!nm) { alert('Nama ibadah wajib diisi'); return; }
+  const nm = gv('ib-nm').trim();
+  if (!nm) { alert('Nama ibadah wajib diisi'); return; }
   const tgl = gv('ib-tgl') || new Date().toISOString().slice(0,10);
-  await FS.add('ibadah', { tgl, wkt: gv('ib-wkt')||'07:00', nm, kh: gv('ib-kh'), wl: gv('ib-wl'), tm: gv('ib-tm') });
-  closeOv('ov-ibadah'); clr('ib-tgl','ib-wkt','ib-nm','ib-kh','ib-wl','ib-tm');
-  addLog('add', '', 'Jadwal ibadah ditambahkan', nm + ' - ' + fTgl(tgl), 'add');
-  await renderIB(); await renderDash(); toast('OK Jadwal ibadah disimpan ke Firebase');
+  await FS.add('ibadah', {
+    tgl, wkt: gv('ib-wkt') || '07:00',
+    nm, kh: gv('ib-kh'), wl: gv('ib-wl'), tm: gv('ib-tm')
+  });
+  closeOv('ov-ibadah');
+  clr('ib-tgl','ib-wkt','ib-nm','ib-kh','ib-wl','ib-tm');
+  addLog('add', '+', 'Jadwal ibadah ditambahkan', nm + ' - ' + fTgl(tgl), 'add');
+  await renderIB(); await renderDash();
+  toast('Jadwal ibadah disimpan ke Firebase');
 }
 
 // ===================================================
@@ -1414,6 +1485,43 @@ async function simpanEditJ() {
   } catch(e) { toast('Gagal update: ' + e.message); }
 }
 
+
+// EDIT IBADAH
+function openEditIB(id) {
+  var ib = allIB.find(function(x){ return x._id === id; });
+  if (!ib) return;
+  document.getElementById('edit-ib-id').value  = id;
+  document.getElementById('edit-ib-tgl').value = ib.tgl || '';
+  document.getElementById('edit-ib-wkt').value = ib.wkt || ib.waktu || '';
+  document.getElementById('edit-ib-nm').value  = ib.nm  || ib.nama  || '';
+  document.getElementById('edit-ib-kh').value  = ib.kh  || ib.khotbah || '';
+  document.getElementById('edit-ib-wl').value  = ib.wl  || '';
+  document.getElementById('edit-ib-tm').value  = ib.tm  || ib.tema || '';
+  openOv('ov-edit-ibadah');
+}
+
+async function simpanEditIB() {
+  var id = document.getElementById('edit-ib-id').value;
+  var nm = gv('edit-ib-nm').trim();
+  if (!nm) { alert('Nama ibadah wajib diisi'); return; }
+  var data = {
+    tgl: gv('edit-ib-tgl') || new Date().toISOString().slice(0,10),
+    wkt: gv('edit-ib-wkt') || '07:00',
+    nm: nm, kh: gv('edit-ib-kh'),
+    wl: gv('edit-ib-wl'), tm: gv('edit-ib-tm')
+  };
+  try {
+    await db.collection('ibadah').doc(id).update(data);
+    var idx = allIB.findIndex(function(x){ return x._id === id; });
+    if (idx > -1) allIB[idx] = Object.assign(allIB[idx], data);
+    closeOv('ov-edit-ibadah');
+    await renderIB();
+    await renderDash();
+    addLog('edit', '+', 'Jadwal ibadah diupdate', nm, 'add');
+    toast('Jadwal ibadah berhasil diupdate');
+  } catch(e) { toast('Gagal update: ' + e.message); }
+}
+
 // EDIT KEUANGAN
 function openEditK(id) {
   var k = allK.find(function(x){ return x._id === id; });
@@ -1539,6 +1647,7 @@ document.addEventListener('click', function(e) {
   if (action === 'edit-j')  { openEditJ(id);  return; }
   if (action === 'edit-k')  { openEditK(id);  return; }
   if (action === 'edit-jd') { openEditJD(id); return; }
+  if (action === 'edit-ib') { openEditIB(id); return; }
   if (col) del(col, id);
 });
 </script>
@@ -1633,6 +1742,26 @@ document.addEventListener('click', function(e) {
   <div class="mf">
     <button class="btn btn-o" onclick="closeOv('ov-edit-jadwal')">Batal</button>
     <button class="btn btn-g" onclick="simpanEditJD()">Simpan Perubahan</button>
+  </div>
+</div></div>
+
+<!-- MODAL: EDIT IBADAH -->
+<div class="ov" id="ov-edit-ibadah" style="display:none!important"><div class="modal">
+  <h3>&#9998; Edit Jadwal Ibadah</h3>
+  <input type="hidden" id="edit-ib-id">
+  <div class="fr">
+    <div class="fg2"><label>Tanggal *</label><input type="date" id="edit-ib-tgl"></div>
+    <div class="fg2"><label>Waktu</label><input type="time" id="edit-ib-wkt"></div>
+  </div>
+  <div class="fg2"><label>Nama Ibadah *</label><input type="text" id="edit-ib-nm" placeholder="cth: Ibadah Raya Minggu"></div>
+  <div class="fr">
+    <div class="fg2"><label>Pengkhotbah</label><input type="text" id="edit-ib-kh" placeholder="Nama pengkhotbah"></div>
+    <div class="fg2"><label>Worship Leader</label><input type="text" id="edit-ib-wl" placeholder="Nama WL"></div>
+  </div>
+  <div class="fg2"><label>Tema Khotbah</label><input type="text" id="edit-ib-tm" placeholder="Tema ibadah"></div>
+  <div class="mf">
+    <button class="btn btn-o" onclick="closeOv('ov-edit-ibadah')">Batal</button>
+    <button class="btn btn-g" onclick="simpanEditIB()">Simpan Perubahan</button>
   </div>
 </div></div>
 </body>
