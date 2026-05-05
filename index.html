@@ -467,7 +467,7 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
           </div>
         </div>
         <div class="jg" id="jg-week"></div>
-        <div class="card"><div class="card-hd"><h4>📋 Daftar Jadwal Pelayanan</h4></div><div class="tw"><table><thead><tr><th>Tanggal</th><th>Hari</th><th>Waktu</th><th>Nama Kegiatan</th><th>Jenis Ibadah</th><th>Pemimpin</th><th>Tim Musik</th><th>Tempat</th><th class="no-print">Aksi</th></tr></thead><tbody id="tb-jadwal"></tbody></table></div></div>
+        <div class="card"><div class="card-hd"><h4>📋 Daftar Jadwal Pelayanan</h4></div><div class="tw"><table><thead><tr><th>Tanggal</th><th>Hari</th><th>Waktu</th><th>Nama Kegiatan</th><th>Jenis Ibadah</th><th>Tema</th><th>Pemimpin</th><th>Tim Musik</th><th>Tempat</th><th class="no-print">Aksi</th></tr></thead><tbody id="tb-jadwal"></tbody></table></div></div>
       </div>
 
       <!-- JADWAL IBADAH -->
@@ -566,17 +566,40 @@ tbody td{padding:8px 10px;font-size:0.81rem;border-bottom:1px solid var(--cream2
 
 <!-- MODAL: JADWAL PELAYANAN -->
 <div class="ov" id="ov-jadwal" style="display:none!important"><div class="modal">
-  <h3>📅 Tambah Jadwal Pelayanan</h3>
-  <div class="fr"><div class="fg2"><label>Tanggal *</label><input type="date" id="jd-tgl" onchange="setHari()"></div><div class="fg2"><label>Hari (otomatis)</label><input type="text" id="jd-hari" readonly style="background:var(--cream2);color:var(--muted)"></div></div>
-  <div class="fr"><div class="fg2"><label>Waktu</label><input type="time" id="jd-wkt"></div><div class="fg2"><label>Tempat</label><input type="text" id="jd-tmp" placeholder="Lokasi kegiatan"></div></div>
+  <h3>&#128197; Tambah Jadwal Pelayanan</h3>
+  <div class="fr">
+    <div class="fg2"><label>Tanggal *</label><input type="date" id="jd-tgl" onchange="setHari()"></div>
+    <div class="fg2"><label>Hari (otomatis)</label><input type="text" id="jd-hari" readonly style="background:var(--cream2);color:var(--muted)"></div>
+  </div>
+  <div class="fr">
+    <div class="fg2"><label>Waktu</label><input type="time" id="jd-wkt"></div>
+    <div class="fg2"><label>Tempat</label><input type="text" id="jd-tmp" placeholder="Lokasi kegiatan"></div>
+  </div>
   <div class="fg2"><label>Nama Kegiatan *</label><input type="text" id="jd-nm" placeholder="Nama kegiatan pelayanan"></div>
-  <div class="fg2"><label>Jenis Ibadah (isi manual)</label><input type="text" id="jd-jenis" placeholder="cth: Ibadah Raya, KKR, Ibadah Pemuda, Doa Puasa..."></div>
+  <div class="fg2"><label>Jenis Ibadah</label><input type="text" id="jd-jenis" placeholder="cth: Ibadah Raya, KKR, Ibadah Pemuda, Doa Puasa..."></div>
+  <div class="fg2"><label>Tema / Judul Khotbah</label><input type="text" id="jd-tm" placeholder="Tema khotbah (opsional)"></div>
   <div class="fg2"><label>Pemimpin / Pengkhotbah</label><input type="text" id="jd-pim" placeholder="Nama pemimpin"></div>
-  <div class="sdiv">🎵 Tim Musik Pelayanan</div>
-  <div class="fr"><div class="fg2"><label>🎤 Worship Leader</label><input type="text" id="jd-wl" placeholder="Nama Worship Leader"></div><div class="fg2"><label>🎤 Singer</label><input type="text" id="jd-sg" placeholder="Nama Singer"></div></div>
-  <div class="fr3"><div class="fg2"><label>🎸 Gitaris</label><input type="text" id="jd-gt" placeholder="Gitaris"></div><div class="fg2"><label>🎸 Bassist</label><input type="text" id="jd-bs" placeholder="Bassist"></div><div class="fg2"><label>🥁 Drummer</label><input type="text" id="jd-dr" placeholder="Drummer"></div></div>
-  <div class="fg2"><label>🎹 Keyboard</label><input type="text" id="jd-ky" placeholder="Nama Keyboardist"></div>
-  <div class="mf"><button class="btn btn-o" onclick="closeOv('ov-jadwal')">Batal</button><button class="btn btn-g" onclick="tambahJD()">💾 Simpan ke Firebase</button></div>
+  <div class="sdiv">&#127925; Tim Musik Pelayanan</div>
+  <div class="fr">
+    <div class="fg2"><label>&#127908; Worship Leader</label><input type="text" id="jd-wl" placeholder="Nama Worship Leader"></div>
+    <div class="fg2"><label>&#127908; Singer</label><input type="text" id="jd-sg" placeholder="Nama Singer"></div>
+  </div>
+  <div class="fr3">
+    <div class="fg2"><label>Gitaris</label><input type="text" id="jd-gt" placeholder="Gitaris"></div>
+    <div class="fg2"><label>Bassist</label><input type="text" id="jd-bs" placeholder="Bassist"></div>
+    <div class="fg2"><label>Drummer</label><input type="text" id="jd-dr" placeholder="Drummer"></div>
+  </div>
+  <div class="fg2"><label>Keyboard</label><input type="text" id="jd-ky" placeholder="Nama Keyboardist"></div>
+  <div style="background:#F0FFF4;border:1px solid #A7F3D0;border-radius:8px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+    <input type="checkbox" id="jd-sync-ibadah" style="width:18px;height:18px;cursor:pointer" checked>
+    <label for="jd-sync-ibadah" style="cursor:pointer;font-size:.85rem;color:#065F46;font-weight:600;text-transform:none;letter-spacing:0">
+      &#10004; Tambahkan juga ke Jadwal Ibadah secara otomatis
+    </label>
+  </div>
+  <div class="mf">
+    <button class="btn btn-o" onclick="closeOv('ov-jadwal')">Batal</button>
+    <button class="btn btn-g" onclick="tambahJD()">Simpan ke Firebase</button>
+  </div>
 </div></div>
 
 <!-- MODAL: IBADAH -->
@@ -1003,8 +1026,11 @@ async function renderJD() {
     ].filter(Boolean).join('');
     return '<tr>'
       + '<td>' + fTgl(j.tgl) + '</td><td>' + (j.hari||'') + '</td><td>' + (j.wkt||'') + '</td>'
-      + '<td><strong>' + (j.nm||'') + '</strong></td>'
+      + '<td><strong>' + (j.nm||'') + '</strong>'
+      + (j.synced ? ' <span style="font-size:.6rem;background:#D1FAE5;color:#065F46;padding:1px 5px;border-radius:3px">&#8596; Ibadah</span>' : '')
+      + '</td>'
       + '<td><span class="sb b-ib">' + (j.jenis||'-') + '</span></td>'
+      + '<td style="font-size:.78rem;font-style:italic;color:var(--muted)">' + (j.tm||'-') + '</td>'
       + '<td>' + (j.pim||'-') + '</td>'
       + '<td>' + (chips||'-') + '</td>'
       + '<td>' + (j.tmp||'-') + '</td>'
@@ -1015,14 +1041,52 @@ async function renderJD() {
   }).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Belum ada jadwal</td></tr>';
 }
 async function tambahJD() {
-  const nm = gv('jd-nm').trim(), tgl = gv('jd-tgl');
+  var nm  = gv('jd-nm').trim();
+  var tgl = gv('jd-tgl');
   if (!nm)  { alert('Nama kegiatan wajib diisi'); return; }
   if (!tgl) { alert('Tanggal wajib diisi'); return; }
-  const hari = DAYS[new Date(tgl).getDay()];
-  await FS.add('jadwal', { tgl, hari, wkt: gv('jd-wkt')||'07:00', nm, jenis: gv('jd-jenis')||'Ibadah Umum', pim: gv('jd-pim'), tmp: gv('jd-tmp'), wl: gv('jd-wl'), sg: gv('jd-sg'), gt: gv('jd-gt'), bs: gv('jd-bs'), dr: gv('jd-dr'), ky: gv('jd-ky') });
-  closeOv('ov-jadwal'); clr('jd-tgl','jd-hari','jd-wkt','jd-nm','jd-jenis','jd-pim','jd-tmp','jd-wl','jd-sg','jd-gt','jd-bs','jd-dr','jd-ky');
-  addLog('add', '', 'Jadwal ditambahkan', nm + ' - ' + fTgl(tgl), 'add');
-  await renderJD(); await renderDash(); toast('OK Jadwal disimpan ke Firebase');
+  var hari  = DAYS[new Date(tgl).getDay()];
+  var sync  = document.getElementById('jd-sync-ibadah').checked;
+  var refId = null;
+
+  // Save jadwal pelayanan
+  var jadwalRef = await FS.add('jadwal', {
+    tgl: tgl, hari: hari,
+    wkt: gv('jd-wkt') || '07:00',
+    nm: nm,
+    jenis: gv('jd-jenis') || 'Ibadah Umum',
+    tm: gv('jd-tm'),
+    pim: gv('jd-pim'),
+    tmp: gv('jd-tmp'),
+    wl: gv('jd-wl'), sg: gv('jd-sg'),
+    gt: gv('jd-gt'), bs: gv('jd-bs'),
+    dr: gv('jd-dr'), ky: gv('jd-ky'),
+    synced: sync
+  });
+  refId = jadwalRef.id;
+
+  // Jika checkbox dicentang — simpan juga ke jadwal ibadah
+  if (sync) {
+    await FS.add('ibadah', {
+      tgl: tgl,
+      wkt: gv('jd-wkt') || '07:00',
+      nm: nm,
+      kh: gv('jd-pim'),
+      wl: gv('jd-wl'),
+      tm: gv('jd-tm'),
+      jadwalRef: refId  // link ke jadwal pelayanan
+    });
+  }
+
+  closeOv('ov-jadwal');
+  clr('jd-tgl','jd-hari','jd-wkt','jd-nm','jd-jenis','jd-tm','jd-pim','jd-tmp','jd-wl','jd-sg','jd-gt','jd-bs','jd-dr','jd-ky');
+  document.getElementById('jd-sync-ibadah').checked = true;
+
+  addLog('add', '+', 'Jadwal pelayanan ditambahkan' + (sync ? ' + Jadwal Ibadah' : ''), nm + ' - ' + fTgl(tgl), 'add');
+  await renderJD();
+  if (sync) await renderIB();
+  await renderDash();
+  toast('Jadwal disimpan' + (sync ? ' + otomatis ke Jadwal Ibadah' : ''));
 }
 
 // ===================================================
@@ -1398,46 +1462,69 @@ function editSetHari() {
 function openEditJD(id) {
   var j = allJD.find(function(x){ return x._id === id; });
   if (!j) return;
-  document.getElementById('edit-jd-id').value  = id;
-  document.getElementById('edit-jd-tgl').value = j.tgl || '';
-  document.getElementById('edit-jd-hari').value = j.hari || '';
-  document.getElementById('edit-jd-wkt').value = j.wkt || '';
-  document.getElementById('edit-jd-nm').value  = j.nm  || '';
+  document.getElementById('edit-jd-id').value   = id;
+  document.getElementById('edit-jd-tgl').value  = j.tgl   || '';
+  document.getElementById('edit-jd-hari').value = j.hari  || '';
+  document.getElementById('edit-jd-wkt').value  = j.wkt   || '';
+  document.getElementById('edit-jd-nm').value   = j.nm    || '';
   document.getElementById('edit-jd-jenis').value = j.jenis || '';
-  document.getElementById('edit-jd-pim').value = j.pim || '';
-  document.getElementById('edit-jd-tmp').value = j.tmp || '';
-  document.getElementById('edit-jd-wl').value  = j.wl  || '';
-  document.getElementById('edit-jd-sg').value  = j.sg  || '';
-  document.getElementById('edit-jd-gt').value  = j.gt  || '';
-  document.getElementById('edit-jd-bs').value  = j.bs  || '';
-  document.getElementById('edit-jd-dr').value  = j.dr  || '';
-  document.getElementById('edit-jd-ky').value  = j.ky  || '';
+  document.getElementById('edit-jd-tm').value   = j.tm    || '';
+  document.getElementById('edit-jd-pim').value  = j.pim   || '';
+  document.getElementById('edit-jd-tmp').value  = j.tmp   || '';
+  document.getElementById('edit-jd-wl').value   = j.wl    || '';
+  document.getElementById('edit-jd-sg').value   = j.sg    || '';
+  document.getElementById('edit-jd-gt').value   = j.gt    || '';
+  document.getElementById('edit-jd-bs').value   = j.bs    || '';
+  document.getElementById('edit-jd-dr').value   = j.dr    || '';
+  document.getElementById('edit-jd-ky').value   = j.ky    || '';
+  document.getElementById('edit-jd-sync').checked = j.synced !== false;
   openOv('ov-edit-jadwal');
 }
 
 async function simpanEditJD() {
-  var id = document.getElementById('edit-jd-id').value;
-  var nm = gv('edit-jd-nm').trim();
+  var id  = document.getElementById('edit-jd-id').value;
+  var nm  = gv('edit-jd-nm').trim();
   var tgl = gv('edit-jd-tgl');
+  var sync = document.getElementById('edit-jd-sync').checked;
   if (!nm)  { alert('Nama kegiatan wajib diisi'); return; }
   if (!tgl) { alert('Tanggal wajib diisi'); return; }
   var hari = DAYS[new Date(tgl).getDay()];
   var data = {
-    tgl: tgl, hari: hari, wkt: gv('edit-jd-wkt') || '07:00',
+    tgl: tgl, hari: hari,
+    wkt: gv('edit-jd-wkt') || '07:00',
     nm: nm, jenis: gv('edit-jd-jenis') || 'Ibadah Umum',
+    tm: gv('edit-jd-tm'),
     pim: gv('edit-jd-pim'), tmp: gv('edit-jd-tmp'),
     wl: gv('edit-jd-wl'), sg: gv('edit-jd-sg'),
     gt: gv('edit-jd-gt'), bs: gv('edit-jd-bs'),
-    dr: gv('edit-jd-dr'), ky: gv('edit-jd-ky')
+    dr: gv('edit-jd-dr'), ky: gv('edit-jd-ky'),
+    synced: sync
   };
   try {
     await db.collection('jadwal').doc(id).update(data);
     var idx = allJD.findIndex(function(x){ return x._id === id; });
     if (idx > -1) allJD[idx] = Object.assign(allJD[idx], data);
+
+    // Update linked ibadah if sync checked
+    if (sync) {
+      var ibSnap = await db.collection('ibadah').where('jadwalRef', '==', id).get();
+      var ibData = { tgl: tgl, wkt: data.wkt, nm: nm, kh: data.pim, wl: data.wl, tm: data.tm };
+      if (!ibSnap.empty) {
+        // Update existing linked ibadah
+        var batch = db.batch();
+        ibSnap.docs.forEach(function(doc) { batch.update(doc.ref, ibData); });
+        await batch.commit();
+      } else {
+        // Create new ibadah entry
+        await FS.add('ibadah', Object.assign({}, ibData, { jadwalRef: id }));
+      }
+    }
+
     closeOv('ov-edit-jadwal');
     await renderJD();
-    addLog('edit', '+', 'Jadwal diupdate', nm, 'add');
-    toast('Jadwal berhasil diupdate');
+    await renderIB();
+    addLog('edit', '+', 'Jadwal diupdate' + (sync ? ' + Jadwal Ibadah' : ''), nm, 'add');
+    toast('Jadwal berhasil diupdate' + (sync ? ' + Jadwal Ibadah' : ''));
   } catch(e) { toast('Gagal update: ' + e.message); }
 }
 
@@ -1523,7 +1610,8 @@ document.addEventListener('click', function(e) {
     <div class="fg2"><label>Tempat</label><input type="text" id="edit-jd-tmp" placeholder="Lokasi kegiatan"></div>
   </div>
   <div class="fg2"><label>Nama Kegiatan *</label><input type="text" id="edit-jd-nm" placeholder="Nama kegiatan"></div>
-  <div class="fg2"><label>Jenis Ibadah</label><input type="text" id="edit-jd-jenis" placeholder="cth: Ibadah Raya, KKR, Ibadah Pemuda..."></div>
+  <div class="fg2"><label>Jenis Ibadah</label><input type="text" id="edit-jd-jenis" placeholder="cth: Ibadah Raya, KKR..."></div>
+  <div class="fg2"><label>Tema / Judul Khotbah</label><input type="text" id="edit-jd-tm" placeholder="Tema khotbah"></div>
   <div class="fg2"><label>Pemimpin / Pengkhotbah</label><input type="text" id="edit-jd-pim" placeholder="Nama pemimpin"></div>
   <div class="sdiv">Tim Musik Pelayanan</div>
   <div class="fr">
@@ -1536,6 +1624,12 @@ document.addEventListener('click', function(e) {
     <div class="fg2"><label>Drummer</label><input type="text" id="edit-jd-dr" placeholder="Drummer"></div>
   </div>
   <div class="fg2"><label>Keyboard</label><input type="text" id="edit-jd-ky" placeholder="Nama Keyboardist"></div>
+  <div style="background:#F0FFF4;border:1px solid #A7F3D0;border-radius:8px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+    <input type="checkbox" id="edit-jd-sync" style="width:18px;height:18px;cursor:pointer" checked>
+    <label for="edit-jd-sync" style="cursor:pointer;font-size:.85rem;color:#065F46;font-weight:600;text-transform:none;letter-spacing:0">
+      &#10004; Update juga di Jadwal Ibadah
+    </label>
+  </div>
   <div class="mf">
     <button class="btn btn-o" onclick="closeOv('ov-edit-jadwal')">Batal</button>
     <button class="btn btn-g" onclick="simpanEditJD()">Simpan Perubahan</button>
