@@ -907,11 +907,12 @@ async function renderDash() {
       src: 'ibadah'
     }));
 
-  // Gabung + hapus duplikat berdasarkan tgl+nama
+  // Gabung + hapus duplikat
+  // Key: tgl + waktu + nama (agar 2 ibadah di hari yang sama beda waktu tetap tampil)
   var seen = {};
   var combined = [];
   jadwalUp.concat(ibadahUp).forEach(function(x) {
-    var key = x.tgl + '|' + (x.nm||'').toLowerCase().trim();
+    var key = x.tgl + '|' + (x.wkt||'') + '|' + (x.nm||'').toLowerCase().trim();
     if (!seen[key]) { seen[key] = true; combined.push(x); }
   });
 
@@ -920,7 +921,7 @@ async function renderDash() {
     return da.localeCompare(db2);
   });
 
-  var up = combined.slice(0, 7);
+  var up = combined.slice(0, 10);
 
   if (!up.length) {
     sc.innerHTML = '<p style="color:var(--muted);font-size:.8rem">Belum ada jadwal kegiatan terdekat.</p>';
